@@ -44,10 +44,10 @@ The notebook asserts every number above, so a successful run is also a verificat
 
 ## Contents
 
-- `darcy_flux_mass_balance.ipynb`: the analysis (interactive 3D views drawn as SVG, so they need no WebGL, plus flux matrices, flow plots,
-  three methods, mass balance, convergence)
-- `requirements.txt`: exact dependency pins, including [RiskPlot](https://pypi.org/project/riskplot/) for the heatmaps,
-  field contours, and budget waterfall
+- `darcy_flux_mass_balance.ipynb`: the analysis, with three figures (the control volume in xyz space, the q_y surface,
+  and streamlines over log10|q|). The two 3D views are drawn as SVG, so they need no WebGL.
+- `requirements.txt`: exact dependency pins, including [RiskPlot](https://pypi.org/project/riskplot/) for the
+  flux-magnitude contour behind the streamlines
 - `.github/workflows/pages.yml`: executes the notebook with `nbconvert --execute` and publishes the HTML to GitHub Pages
 
 ## Run locally
