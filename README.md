@@ -1,9 +1,35 @@
-# Darcy flux mass balance
+# Hydrology
+
+Two homework pieces, both published with GitHub Pages:
+
+| | Page | Source |
+|---|---|---|
+| HW 1 · Darcy flux mass balance | https://owendinsmore.github.io/hydrology/ | `darcy_flux_mass_balance.ipynb` |
+| HW 2 · Pore-ensemble SWRC simulator | https://owendinsmore.github.io/hydrology/swrc/ | `swrc/` |
+
+## HW 2 · Pore-ensemble SWRC
+
+A static web app (`swrc/`, no build step) that builds a soil water retention curve from a bundle of
+straight capillaries drilled through a cylinder.
+
+- Sample N pore radii from an exponential, gamma, or log-normal distribution with mean r̄, optionally
+  truncated so no pore is larger than r_max.
+- Capillary rise sets the head at which each pore drains: h = −2σ cos γ / (ρ_w g r). With the default
+  fluid constants that is h ≈ −14.7 / r (h in mm, r in mm).
+- Porosity is the summed pore volume over the cylinder volume. Length cancels, so φ = Σ r_i² / R².
+- At a given head every pore with r > r* = −2σ cos γ / (ρ_w g h) has drained; θ(h) is what remains.
+- The page plots θ against |h| on a log axis, shows porosity, θ, saturation, r*, and drained-pore
+  counts for the current head, and renders a rotatable 3D cylinder in which a sample of pores is
+  coloured by whether it still holds water. Buttons re-run the ensemble, draw a new seed, animate a
+  drainage sweep, reset the defaults, and export the curve as CSV.
+
+With the sketch's defaults (10⁶ pores, r̄ = 0.01 mm, D = 20 mm) the summed pore area is about twice the
+cylinder cross-section, so the reported porosity is about 2. The page flags this rather than hiding it.
+
+## HW 1 · Darcy flux mass balance
 
 A single Jupyter notebook that visualizes a 2D Darcy flux field and computes the water balance of a
 1 cm control volume three different ways.
-
-**Rendered notebook:** https://owendinsmore.github.io/hydrology/
 
 ## Problem
 

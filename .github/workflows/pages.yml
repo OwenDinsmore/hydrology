@@ -33,6 +33,11 @@ jobs:
             --ExecutePreprocessor.timeout=600 \
             --output-dir _site --output index.html
 
+      - name: Add static SWRC app
+        run: |
+          mkdir -p _site/swrc
+          cp -r swrc/. _site/swrc/
+
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: _site
