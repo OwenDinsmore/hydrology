@@ -183,9 +183,7 @@ class Chart {
     this.tooltip = tooltip;
     this.yLog = yLog;
     this.tip = tip;
-    this.W = 640; this.H = 420;
-    this.m = { t: 14, r: 22, b: 48, l: 70 };
-    const { m, W, H } = this;
+    this.m = { t: 8, r: 14, b: 40, l: 66 };
     this.gBand = el("g", {}, svg);
     this.gGrid = el("g", { class: "grid" }, svg);
     this.gSeries = el("g", {}, svg);
@@ -193,9 +191,11 @@ class Chart {
     this.gTicks = el("g", { class: "tick" }, svg);
     this.cross = el("line", { class: "crosshair", visibility: "hidden" }, svg);
     this.dot = el("circle", { class: "hover-dot", r: 5, visibility: "hidden" }, svg);
-    this.hit = el("rect", { class: "hit", x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b }, svg);
-    el("text", { class: "axis-label", x: m.l + (W - m.l - m.r) / 2, y: H - 10, "text-anchor": "middle" }, svg).innerHTML = xLabel;
-    el("text", { class: "axis-label", "text-anchor": "middle", transform: `translate(14 ${m.t + (H - m.t - m.b) / 2}) rotate(-90)` }, svg).textContent = yLabel;
+    this.hit = el("rect", { class: "hit" }, svg);
+    this.xText = el("text", { class: "axis-label", "text-anchor": "middle" }, svg);
+    this.xText.innerHTML = xLabel;
+    this.yText = el("text", { class: "axis-label", "text-anchor": "middle" }, svg);
+    this.yText.textContent = yLabel;
     this.hit.addEventListener("pointermove", (e) => this.onHover(e));
     this.hit.addEventListener("pointerleave", () => this.hideHover());
   }
@@ -214,8 +214,16 @@ class Chart {
   // series: [{ cls, pts: [[x, y], …] }], hover: [{ x, y, row }]
   draw({ xMin, xMax, yMin, yMax, series, hover, excludeBelow }) {
     Object.assign(this, { xMin, xMax, yMin, yMax, hover });
+    // the svg is sized by its panel, so the drawing space follows it
+    this.W = this.svg.clientWidth || 640;
+    this.H = this.svg.clientHeight || 420;
     const { m, W, H } = this;
     const x0 = m.l, x1 = W - m.r, y0 = m.t, y1 = H - m.b;
+    this.svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    for (const [k, v] of Object.entries({ x: x0, y: y0, width: x1 - x0, height: y1 - y0 })) this.hit.setAttribute(k, v);
+    this.xText.setAttribute("x", (x0 + x1) / 2);
+    this.xText.setAttribute("y", H - 6);
+    this.yText.setAttribute("transform", `translate(13 ${(y0 + y1) / 2}) rotate(-90)`);
     for (const g of [this.gGrid, this.gTicks, this.gAxis, this.gSeries, this.gBand]) g.innerHTML = "";
 
     if (excludeBelow && excludeBelow > xMin) {
@@ -284,17 +292,17 @@ let model = null;
 let best = null;
 
 const swrcChart = makeChart("swrc-svg", {
-  xLabel: `effective saturation ${THETA_E}`,
-  yLabel: "matric suction |h| (mm)",
+  xLabel: `saturation ${THETA_E}`,
+  yLabel: "suction |h| (mm)",
   tip: (g) => `Θ<sub>E</sub> = ${fmt.sig(g.thetaE, 3)}<br>|h| = ${fmt.sig(g.h, 4)} mm<br>r* = ${fmt.sig(g.rstar, 3)} mm`,
 });
 const kChart = makeChart("k-svg", {
-  xLabel: `effective saturation ${THETA_E}`,
-  yLabel: "hydraulic conductivity K (m/s)",
+  xLabel: `saturation ${THETA_E}`,
+  yLabel: "K (m/s)",
   tip: (g) => `Θ<sub>E</sub> = ${fmt.sig(g.thetaE, 3)}<br>K = ${fmt.sig(g.K, 3)} m/s<br>K/K<sub>sat</sub> = ${fmt.sig(g.K / model.Ksat, 3)}`,
 });
 const localChart = makeChart("local-svg", {
-  xLabel: `effective saturation ${THETA_E}`,
+  xLabel: `saturation ${THETA_E}`,
   yLabel: "exponent",
   yLog: false,
   tip: (a) => `Θ<sub>E</sub> = ${fmt.sig(a.thetaE, 3)}<br>local λ = ${fmt.sig(a.lam, 3)}<br>local c = ${fmt.sig(a.c, 3)}<br>1 + 2/λ = ${fmt.sig(a.predicted, 3)}`,
@@ -380,16 +388,15 @@ function drawCurves() {
   $("#lam-out").textContent = lam.toFixed(2);
   $("#c-out").textContent = c.toFixed(2);
   $("#c-bc").textContent = pred.toFixed(2);
-  $("#lam-rms").textContent = `misfit ±${m.h.toFixed(3)} decades in h`;
-  $("#c-rms").textContent = `misfit ±${m.K.toFixed(3)} decades in K`;
-  $("#c-gap").textContent = `${gap >= 0 ? "+" : ""}${gap.toFixed(1)}% relative to c`;
+  $("#lam-rms").textContent = `off by ±${m.h.toFixed(3)} decades`;
+  $("#c-rms").textContent = `off by ±${m.K.toFixed(3)} decades`;
+  $("#c-gap").textContent = `${gap >= 0 ? "+" : ""}${gap.toFixed(1)}% vs c`;
 
   const bestPred = 1 + 2 / best.lam;
   const bestGap = (100 * (bestPred - best.c)) / best.c;
   $("#answer").innerHTML =
-    `<strong>Fitting Θ<sub>E</sub> ≥ ${thetaMin} gives λ = ${best.lam.toFixed(2)} and c = ${best.c.toFixed(2)}.
-    Brooks–Corey predicts 1 + 2/λ = ${bestPred.toFixed(2)}, ${Math.abs(bestGap).toFixed(0)}% ${bestGap >= 0 ? "above" : "below"} the measured c.</strong>
-    With b = 0 there is no tortuosity term to absorb the gap.`;
+    `<strong>Close. Fitting down to Θ<sub>E</sub> = ${thetaMin} gives λ = ${best.lam.toFixed(2)} and c = ${best.c.toFixed(2)}.
+    Theory says ${bestPred.toFixed(2)}, which is ${Math.abs(bestGap).toFixed(0)}% ${bestGap >= 0 ? "high" : "low"}.</strong>`;
 }
 
 function drawTables() {
@@ -423,7 +430,7 @@ function run() {
   model = runModel(readParams());
   const ms = performance.now() - t0;
   $("#phi").textContent = fmt.sig(model.phi, 3);
-  $("#kept").textContent = `${model.N.toLocaleString()} of ${model.p.n.toLocaleString()} pores kept`;
+  $("#kept").textContent = `${model.N.toLocaleString()} pores kept`;
   $("#ha").innerHTML = `${fmt.sig(model.hA, 3)} <small>mm</small>`;
   $("#ksat").textContent = fmt.sig(model.Ksat, 3);
   $("#status").innerHTML =
@@ -447,6 +454,16 @@ form.addEventListener("input", (e) => {
   }
 });
 form.addEventListener("submit", (e) => e.preventDefault());
+
+document.querySelectorAll(".tab[data-tab]").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab[data-tab]").forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-pressed", on);
+      document.getElementById(t.dataset.tab).hidden = !on;
+    });
+  });
+});
 
 $("#best").addEventListener("click", refit);
 $("#reseed").addEventListener("click", () => {
@@ -475,3 +492,4 @@ $("#csv").addEventListener("click", () => {
 /* ───────────────────────── boot ───────────────────────── */
 writeParams(DEFAULTS);
 run();
+new ResizeObserver(() => { if (model) drawCurves(); }).observe(document.getElementById("swrc-svg"));

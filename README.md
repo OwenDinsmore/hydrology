@@ -10,7 +10,7 @@ Three homework pieces, all published with GitHub Pages:
 
 ## HW 3 · Conductivity
 
-A static web app (`conductivity/`, no build step, laid out as a journal article) that extends HW 2 to K(Θ_E).
+A one-screen static web app (`conductivity/`, no build step, built on `swrc/styles.css`) that extends HW 2 to K(Θ_E).
 
 - Draws 10⁶ pores from an exponential with r̄ = 0.01 mm and removes everything above 3r̄, in a sample of radius
   2 cm. That leaves about 950,000 pores and φ ≈ 0.288.
