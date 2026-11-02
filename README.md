@@ -1,11 +1,29 @@
 # Hydrology
 
-Two homework pieces, both published with GitHub Pages:
+Three homework pieces, all published with GitHub Pages:
 
 | | Page | Source |
 |---|---|---|
 | HW 1 · Darcy flux mass balance | https://owendinsmore.github.io/hydrology/ | `darcy_flux_mass_balance.ipynb` |
 | HW 2 · Pore-ensemble SWRC simulator | https://owendinsmore.github.io/hydrology/swrc/ | `swrc/` |
+| HW 3 · Brooks–Corey fit and Poiseuille conductivity | https://owendinsmore.github.io/hydrology/conductivity/ | `conductivity/` |
+
+## HW 3 · Conductivity
+
+A static web app (`conductivity/`, no build step, shares `swrc/styles.css`) that extends HW 2 to K(Θ_E).
+
+- Draws 10⁶ pores from an exponential with r̄ = 0.01 mm and removes everything above 3r̄, in a sample of radius
+  2 cm. That leaves about 950,000 pores and φ ≈ 0.288.
+- h_A = 2σ/(ρ g r_max) ≈ 490 mm. λ and c are set by sliders, with a button that snaps to the least-squares fit.
+- K = (ρg/8μ) Σ r⁴ / R² over the pores still full at each h, which gives K_sat ≈ 1.35 × 10⁻⁴ m/s.
+- The handout's leading factor of 1/(ρg) is dimensionally wrong. ΔP + ρgΔz = ρgΔH, so the page uses ρg.
+
+| Fit range | λ | c | 1 + 2/λ |
+|---|---:|---:|---:|
+| Θ_E ≥ 0.1 | 1.71 | 2.02 | 2.17 |
+| Θ_E ≥ 0.01 | 1.99 | 1.91 | 2.00 |
+| Θ_E ≥ 0.001 | 2.17 | 1.85 | 1.92 |
+| Θ_E ≥ 0.0001 | 2.30 | 1.82 | 1.87 |
 
 ## HW 2 · Pore-ensemble SWRC
 

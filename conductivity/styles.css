@@ -1,0 +1,86 @@
+/* Page-specific layer on top of ../swrc/styles.css */
+:root {
+  --fit: #b4570a;
+  --pred: #00856a;
+}
+
+/* ───── Board layout ───── */
+.board--k {
+  grid-template-columns: minmax(250px, 290px) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "stats  stats stats"
+    "params swrc  k"
+    "params local answer"
+    "table  table table";
+  align-items: start;
+}
+.panel--stats  { grid-area: stats; }
+.panel--params { grid-area: params; }
+.panel--swrc   { grid-area: swrc; }
+.panel--k      { grid-area: k; }
+.panel--local  { grid-area: local; }
+.panel--answer { grid-area: answer; }
+.panel--table  { grid-area: table; }
+
+/* ───── Readouts ───── */
+.readouts--strip { grid-template-columns: repeat(6, 1fr); }
+.readout--key dd { color: var(--water); }
+.readouts--strip dd { font-size: 26px; }
+.readouts--strip dt { text-transform: none; letter-spacing: 0.02em; font-size: 12px; }
+
+/* ───── Series ───── */
+.key {
+  list-style: none;
+  margin: -6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font: 11px var(--mono);
+  color: var(--ink-2);
+}
+.ln { display: inline-block; width: 22px; margin-right: 6px; vertical-align: 3px; border-top: 2.5px solid var(--water); }
+.ln--fit { border-top: 2.5px dashed var(--fit); }
+.ln--pred { border-top: 2.5px dotted var(--pred); }
+
+.chart .series--fit { stroke: var(--fit); stroke-dasharray: 8 5; }
+.chart .series--pred { stroke: var(--pred); stroke-dasharray: 2 5; }
+.chart .excluded { fill: var(--paper-3); opacity: 0.45; }
+.chart .excluded-label { font: 11px var(--mono); fill: var(--ink-3); }
+
+/* ───── Answer + tables ───── */
+.answer { margin: 0; font-size: 14px; color: var(--ink-2); }
+.answer strong { color: var(--ink); }
+
+.tbl { width: 100%; border-collapse: collapse; font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+.tbl caption { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); padding-bottom: 6px; }
+.tbl th, .tbl td { text-align: right; padding: 5px 10px; white-space: nowrap; }
+.tbl th { font-weight: 500; font-size: 12px; color: var(--ink-2); border-bottom: 1.5px solid var(--ink); }
+.tbl th em { font-style: normal; color: var(--ink-3); font-size: 11px; }
+.tbl td { border-bottom: 1px solid var(--rule); }
+.tbl tr.is-active td { background: var(--water-soft); }
+.tbl-wrap { overflow-x: auto; }
+
+.panel--params .btn { box-shadow: 2px 2px 0 var(--ink); }
+.btn--small { padding: 5px 10px; font-size: 12px; }
+
+/* ───── Responsive ───── */
+@media (max-width: 1080px) {
+  .board--k {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "stats  stats"
+      "swrc   k"
+      "local  answer"
+      "table  table"
+      "params params";
+  }
+  .readouts--strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 720px) {
+  .board--k {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "stats" "swrc" "k" "local" "answer" "table" "params";
+  }
+  .readouts--strip { grid-template-columns: repeat(2, 1fr); }
+}

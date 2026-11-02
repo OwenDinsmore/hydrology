@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pore-Ensemble Conductivity</title>
+  <meta name="description" content="Brooks-Corey retention fit and Poiseuille hydraulic conductivity for a drilled-pore ensemble with a truncated exponential radius distribution." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../swrc/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead__title">
+      <span class="masthead__kicker">HW 3 · Brooks–Corey and Poiseuille flow</span>
+      <h1>Hydraulic conductivity from a drilled-pore ensemble</h1>
+    </div>
+    <p class="masthead__eq">
+      <span class="eq">h = −h<sub>A</sub> Θ<sub>E</sub><sup>−1/λ</sup></span>
+      <span class="eq">K(Θ<sub>E</sub>) = K<sub>sat</sub> Θ<sub>E</sub><sup>c</sup></span>
+      <span class="eq eq--muted">Brooks–Corey: c = 1 + 2/λ + b, with b = 0 here</span>
+    </p>
+  </header>
+
+  <main class="board board--k">
+    <!-- ───────── Results ───────── -->
+    <section class="panel panel--stats" aria-label="Results">
+      <dl class="readouts readouts--strip">
+        <div class="readout"><dt>Porosity φ</dt><dd id="phi">–</dd><small id="kept"></small></div>
+        <div class="readout"><dt>Air entry h<sub>A</sub></dt><dd id="ha">–</dd><small>from the largest pore</small></div>
+        <div class="readout"><dt>K<sub>sat</sub></dt><dd id="ksat">–</dd><small>m/s</small></div>
+        <div class="readout readout--key"><dt>λ</dt><dd id="lam-out">–</dd><small id="lam-rms"></small></div>
+        <div class="readout readout--key"><dt>c from K(Θ<sub>E</sub>)</dt><dd id="c-out">–</dd><small id="c-rms"></small></div>
+        <div class="readout readout--key"><dt>1 + 2/λ</dt><dd id="c-bc">–</dd><small id="c-gap"></small></div>
+      </dl>
+    </section>
+
+    <!-- ───────── Parameters ───────── -->
+    <section class="panel panel--params" aria-labelledby="params-title">
+      <h2 id="params-title" class="panel__title">Params</h2>
+
+      <form id="params" class="params" autocomplete="off">
+        <fieldset>
+          <legend>Trial and error</legend>
+          <label class="field">
+            <span class="field__name">λ</span>
+            <input type="range" name="lam" min="0.5" max="4" step="0.001" value="2" />
+            <output name="lam_val">2.00</output>
+          </label>
+          <label class="field">
+            <span class="field__name">c</span>
+            <input type="range" name="c" min="1" max="4" step="0.001" value="2" />
+            <output name="c_val">2.00</output>
+          </label>
+          <label class="field field--select">
+            <span class="field__name">Fit down to Θ<sub>E</sub></span>
+            <select name="thetaMin">
+              <option value="0.1">0.1</option>
+              <option value="0.01" selected>0.01</option>
+              <option value="0.001">0.001</option>
+              <option value="0.0001">0.0001</option>
+            </select>
+          </label>
+          <button type="button" class="btn" id="best">Snap to best fit</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Pores</legend>
+          <label class="field field--num">
+            <span class="field__name">Holes drilled N</span>
+            <input type="number" name="n" min="1000" max="2000000" step="1" value="1000000" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">Mean radius r̄ <em>mm</em></span>
+            <input type="number" name="rmean" min="0.0001" max="1" step="any" value="0.01" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">Remove r above <em>× r̄</em></span>
+            <input type="number" name="cut" min="1" max="20" step="any" value="3" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">Sample radius <em>mm</em></span>
+            <input type="number" name="Rs" min="1" max="1000" step="any" value="20" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">Seed</span>
+            <input type="number" name="seed" min="0" max="999999" step="1" value="42" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Fluid</legend>
+          <label class="field field--num">
+            <span class="field__name">σ <em>N/m</em></span>
+            <input type="number" name="sigma" min="0.001" max="1" step="any" value="0.072" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">ρ <em>kg/m³</em></span>
+            <input type="number" name="rho" min="1" max="20000" step="any" value="1000" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">g <em>m/s²</em></span>
+            <input type="number" name="g" min="0.01" max="100" step="any" value="9.8" />
+          </label>
+          <label class="field field--num">
+            <span class="field__name">μ <em>kg/(m·s)</em></span>
+            <input type="number" name="mu" min="0.00001" max="1" step="any" value="0.001" />
+          </label>
+        </fieldset>
+      </form>
+      <div class="actions">
+        <button type="button" class="btn" id="reseed">New seed</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ───────── Part A ───────── -->
+    <section class="panel panel--swrc" aria-labelledby="swrc-title">
+      <div class="panel__head">
+        <h2 id="swrc-title" class="panel__title">A · Retention curve</h2>
+      </div>
+      <ul class="key" aria-hidden="true">
+        <li><i class="ln ln--data"></i>synthetic data</li>
+        <li><i class="ln ln--fit"></i>Brooks–Corey with λ</li>
+      </ul>
+      <div class="chart">
+        <svg id="swrc-svg" viewBox="0 0 640 420" role="img" aria-label="Matric suction versus effective saturation on log axes, with the Brooks-Corey curve"></svg>
+        <div class="tooltip" hidden></div>
+      </div>
+    </section>
+
+    <!-- ───────── Part B ───────── -->
+    <section class="panel panel--k" aria-labelledby="k-title">
+      <div class="panel__head">
+        <h2 id="k-title" class="panel__title">B · Conductivity</h2>
+      </div>
+      <ul class="key" aria-hidden="true">
+        <li><i class="ln ln--data"></i>Poiseuille sum</li>
+        <li><i class="ln ln--fit"></i>K<sub>sat</sub> Θ<sub>E</sub><sup>c</sup></li>
+        <li><i class="ln ln--pred"></i>exponent 1 + 2/λ</li>
+      </ul>
+      <div class="chart">
+        <svg id="k-svg" viewBox="0 0 640 420" role="img" aria-label="Hydraulic conductivity versus effective saturation on log axes, with the fitted and predicted power laws"></svg>
+        <div class="tooltip" hidden></div>
+      </div>
+    </section>
+
+    <!-- ───────── Local exponents ───────── -->
+    <section class="panel panel--local" aria-labelledby="local-title">
+      <div class="panel__head">
+        <h2 id="local-title" class="panel__title">Exponents along the curve</h2>
+      </div>
+      <ul class="key" aria-hidden="true">
+        <li><i class="ln ln--data"></i>local c = dlnK / dlnΘ<sub>E</sub></li>
+        <li><i class="ln ln--pred"></i>1 + 2/λ, with local λ</li>
+      </ul>
+      <div class="chart">
+        <svg id="local-svg" viewBox="0 0 640 420" role="img" aria-label="Local exponent c and the Brooks-Corey prediction from local lambda, versus effective saturation"></svg>
+        <div class="tooltip" hidden></div>
+      </div>
+    </section>
+
+    <!-- ───────── Answer ───────── -->
+    <section class="panel panel--answer" aria-labelledby="answer-title">
+      <h2 id="answer-title" class="panel__title">How λ and c relate</h2>
+      <p class="answer" id="answer"></p>
+      <p class="answer">
+        A truly power-law pore distribution, Θ<sub>E</sub> ∝ r<sup>λ</sup>, gives K ∝ r<sup>λ+2</sup> and so c = 1 + 2/λ exactly.
+        This distribution is only a power law in its small pores, where r² e<sup>−r/r̄</sup> ≈ r² gives λ → 3 and c → 5/3, which
+        satisfies the relation. The large pores bend the curve, so one straight line cannot fit it, and both exponents depend on the fit range.
+      </p>
+      <table class="tbl">
+        <caption>Best fits by range</caption>
+        <thead>
+          <tr><th scope="col">Θ<sub>E</sub> ≥</th><th scope="col">λ</th><th scope="col">c</th><th scope="col">1 + 2/λ</th><th scope="col">gap</th></tr>
+        </thead>
+        <tbody id="ranges"></tbody>
+      </table>
+    </section>
+
+    <!-- ───────── Table ───────── -->
+    <section class="panel panel--table" aria-labelledby="table-title">
+      <div class="panel__head">
+        <h2 id="table-title" class="panel__title">K for each Θ<sub>E</sub></h2>
+        <button type="button" class="btn btn--small" id="csv">Export CSV</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th scope="col">|h| <em>mm</em></th><th scope="col">r* <em>mm</em></th><th scope="col">Θ<sub>E</sub></th>
+              <th scope="col">θ</th><th scope="col">K <em>m/s</em></th><th scope="col">K / K<sub>sat</sub></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <p>
+      Pores with r &gt; r̄ × the cutoff are removed, not redrawn. With a unit gradient each full pore carries
+      Q = (π/8)(ρg/μ) r⁴, so K = (ρg / 8μ) Σ r⁴ / R² over the pores with r ≤ r* = 2σ/(ρg|h|). Sample height cancels.
+      No tortuosity correction, so b = 0.
+    </p>
+    <p>
+      The handout writes the leading factor as 1/(ρg). Since ΔP + ρgΔz = ρg ΔH, it has to be ρg for Q to come out in m³/s, and that is what is used here.
+    </p>
+    <p><a href="../">← HW 1 Darcy flux</a> · <a href="../swrc/">← HW 2 SWRC</a> · <a href="https://github.com/OwenDinsmore/hydrology">source</a></p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
