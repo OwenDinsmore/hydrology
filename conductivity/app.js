@@ -137,15 +137,22 @@ function misfit(model, pts, lam, c) {
 }
 
 /* ───────────────────────── formatting ───────────────────────── */
+const SUP = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+const THETA_E = `Θ<tspan dy="3" font-size="10">E</tspan><tspan dy="-3"> </tspan>`;
 const fmt = {
+  sci(x, n) {
+    const [m, e] = x.toExponential(n - 1).split("e");
+    const pow = "10" + [...String(Number(e))].map((ch) => SUP[ch]).join("");
+    return Number(m) === 1 ? pow : `${m} × ${pow}`;
+  },
   sig(x, n = 3) {
     if (!isFinite(x)) return "–";
     if (x === 0) return "0";
     const a = Math.abs(x);
-    if (a >= 1e5 || a < 1e-3) return x.toExponential(n - 1).replace("e+", "e").replace("e-0", "e-");
+    if (a >= 1e5 || a < 1e-3) return fmt.sci(x, n);
     return Number(x.toPrecision(n)).toString();
   },
-  pow(d) { return d >= 0 && d <= 4 ? Math.pow(10, d).toLocaleString() : d < 0 && d >= -3 ? Math.pow(10, d).toFixed(-d) : `1e${d}`; },
+  pow(d) { return d >= 0 && d <= 4 ? Math.pow(10, d).toLocaleString() : d < 0 && d >= -3 ? Math.pow(10, d).toFixed(-d) : fmt.sci(Math.pow(10, d), 1); },
 };
 
 /* ───────────────────────── chart (SVG) ───────────────────────── */
@@ -187,7 +194,7 @@ class Chart {
     this.cross = el("line", { class: "crosshair", visibility: "hidden" }, svg);
     this.dot = el("circle", { class: "hover-dot", r: 5, visibility: "hidden" }, svg);
     this.hit = el("rect", { class: "hit", x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b }, svg);
-    el("text", { class: "axis-label", x: m.l + (W - m.l - m.r) / 2, y: H - 10, "text-anchor": "middle" }, svg).textContent = xLabel;
+    el("text", { class: "axis-label", x: m.l + (W - m.l - m.r) / 2, y: H - 10, "text-anchor": "middle" }, svg).innerHTML = xLabel;
     el("text", { class: "axis-label", "text-anchor": "middle", transform: `translate(14 ${m.t + (H - m.t - m.b) / 2}) rotate(-90)` }, svg).textContent = yLabel;
     this.hit.addEventListener("pointermove", (e) => this.onHover(e));
     this.hit.addEventListener("pointerleave", () => this.hideHover());
@@ -214,7 +221,7 @@ class Chart {
     if (excludeBelow && excludeBelow > xMin) {
       const xx = this.x(excludeBelow);
       el("rect", { class: "excluded", x: x0, y: y0, width: xx - x0, height: y1 - y0 }, this.gBand);
-      el("text", { class: "excluded-label", x: x0 + 6, y: y1 - 8 }, this.gBand).textContent = "outside fit";
+      el("text", { class: "excluded-label", x: xx - 6, y: y0 + 16, "text-anchor": "end" }, this.gBand).textContent = "outside fit";
     }
     for (const v of logTicks(xMin, xMax)) {
       const xx = this.x(v);
@@ -277,20 +284,20 @@ let model = null;
 let best = null;
 
 const swrcChart = makeChart("swrc-svg", {
-  xLabel: "effective saturation Θ_E  (log)",
-  yLabel: "matric suction |h|  (mm, log)",
-  tip: (g) => `Θ_E = ${fmt.sig(g.thetaE, 3)}<br>|h| = ${fmt.sig(g.h, 4)} mm<br>r* = ${fmt.sig(g.rstar, 3)} mm`,
+  xLabel: `effective saturation ${THETA_E}`,
+  yLabel: "matric suction |h| (mm)",
+  tip: (g) => `Θ<sub>E</sub> = ${fmt.sig(g.thetaE, 3)}<br>|h| = ${fmt.sig(g.h, 4)} mm<br>r* = ${fmt.sig(g.rstar, 3)} mm`,
 });
 const kChart = makeChart("k-svg", {
-  xLabel: "effective saturation Θ_E  (log)",
-  yLabel: "hydraulic conductivity K  (m/s, log)",
-  tip: (g) => `Θ_E = ${fmt.sig(g.thetaE, 3)}<br>K = ${fmt.sig(g.K, 3)} m/s<br>K/K_sat = ${fmt.sig(g.K / model.Ksat, 3)}`,
+  xLabel: `effective saturation ${THETA_E}`,
+  yLabel: "hydraulic conductivity K (m/s)",
+  tip: (g) => `Θ<sub>E</sub> = ${fmt.sig(g.thetaE, 3)}<br>K = ${fmt.sig(g.K, 3)} m/s<br>K/K<sub>sat</sub> = ${fmt.sig(g.K / model.Ksat, 3)}`,
 });
 const localChart = makeChart("local-svg", {
-  xLabel: "effective saturation Θ_E  (log)",
+  xLabel: `effective saturation ${THETA_E}`,
   yLabel: "exponent",
   yLog: false,
-  tip: (a) => `Θ_E = ${fmt.sig(a.thetaE, 3)}<br>local λ = ${fmt.sig(a.lam, 3)}<br>local c = ${fmt.sig(a.c, 3)}<br>1 + 2/λ = ${fmt.sig(a.predicted, 3)}`,
+  tip: (a) => `Θ<sub>E</sub> = ${fmt.sig(a.thetaE, 3)}<br>local λ = ${fmt.sig(a.lam, 3)}<br>local c = ${fmt.sig(a.c, 3)}<br>1 + 2/λ = ${fmt.sig(a.predicted, 3)}`,
 });
 
 function readParams() {
@@ -373,9 +380,9 @@ function drawCurves() {
   $("#lam-out").textContent = lam.toFixed(2);
   $("#c-out").textContent = c.toFixed(2);
   $("#c-bc").textContent = pred.toFixed(2);
-  $("#lam-rms").textContent = `±${m.h.toFixed(3)} decades in h`;
-  $("#c-rms").textContent = `±${m.K.toFixed(3)} decades in K`;
-  $("#c-gap").textContent = `${gap >= 0 ? "+" : ""}${gap.toFixed(1)}% vs c`;
+  $("#lam-rms").textContent = `misfit ±${m.h.toFixed(3)} decades in h`;
+  $("#c-rms").textContent = `misfit ±${m.K.toFixed(3)} decades in K`;
+  $("#c-gap").textContent = `${gap >= 0 ? "+" : ""}${gap.toFixed(1)}% relative to c`;
 
   const bestPred = 1 + 2 / best.lam;
   const bestGap = (100 * (bestPred - best.c)) / best.c;
@@ -419,8 +426,8 @@ function run() {
   $("#kept").textContent = `${model.N.toLocaleString()} of ${model.p.n.toLocaleString()} pores kept`;
   $("#ha").innerHTML = `${fmt.sig(model.hA, 3)} <small>mm</small>`;
   $("#ksat").textContent = fmt.sig(model.Ksat, 3);
-  $("#status").textContent =
-    `sampled vs closed form: φ ${fmt.sig(model.phi, 4)} / ${fmt.sig(model.phiExact, 4)}, K_sat ${fmt.sig(model.Ksat, 4)} / ${fmt.sig(model.KsatExact, 4)} · ${ms.toFixed(0)} ms`;
+  $("#status").innerHTML =
+    `Sampled / closed form: φ ${fmt.sig(model.phi, 4)} / ${fmt.sig(model.phiExact, 4)}, K<sub>sat</sub> ${fmt.sig(model.Ksat, 4)} / ${fmt.sig(model.KsatExact, 4)}. ${ms.toFixed(0)} ms.`;
   refit();
 }
 
