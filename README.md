@@ -16,7 +16,7 @@ A one-screen static web app (`conductivity/`, no build step, built on `swrc/styl
   2 cm. That leaves about 950,000 pores and φ ≈ 0.288.
 - h_A = 2σ/(ρ g r_max) ≈ 490 mm. λ and c are set by sliders, with a button that snaps to the least-squares fit.
 - K = (ρg/8μ) Σ r⁴ / R² over the pores still full at each h, which gives K_sat ≈ 1.35 × 10⁻⁴ m/s.
-- The handout's leading factor of 1/(ρg) is dimensionally wrong. ΔP + ρgΔz = ρgΔH, so the page uses ρg.
+- ρg sits in the numerator of Q, per the corrected eq. 2 (ΔP + ρgΔz = ρgΔH). It sets K_sat but not K/K_sat or c.
 
 | Fit range | λ | c | 1 + 2/λ |
 |---|---:|---:|---:|
