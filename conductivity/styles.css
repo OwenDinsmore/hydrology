@@ -1,28 +1,25 @@
 /* Page-specific layer on top of ../swrc/styles.css */
 :root {
-  --paper: #eef1e8;
-  --paper-2: #e3e8da;
-  --paper-3: #d5dcca;
-  --rule: rgba(30, 60, 50, 0.1);
-  --ink: #17231f;
-  --ink-2: #44524c;
-  --ink-3: #6b7a73;
+  --paper: #ececec;
+  --paper-2: #e2e2e3;
+  --paper-3: #d3d4d6;
+  --rule: rgba(30, 32, 36, 0.1);
+  --ink: #1b1d21;
+  --ink-2: #474a51;
+  --ink-3: #6e7178;
   --water: #00789a;
   --water-soft: rgba(0, 120, 154, 0.1);
-  --panel: rgba(251, 252, 247, 0.9);
-  --panel-edge: rgba(30, 60, 50, 0.26);
+  --panel: #fafafa;
+  --panel-edge: rgba(30, 32, 36, 0.22);
   --fit: #c2550c;
   --pred: #6d4fc0;
+  --display: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
 }
 
-/* Graph-pad background instead of the ruled lines on HW 2 */
 body {
   padding: 12px clamp(12px, 1.6vw, 20px);
-  background:
-    linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 24px 24px,
-    var(--paper);
-  background-attachment: fixed;
+  background: var(--paper);
 }
 
 /* ───── Top bar ───── */
@@ -38,8 +35,6 @@ body {
 .topbar__title { display: flex; align-items: baseline; gap: 10px; }
 .topbar__title .masthead__kicker { margin: 0; color: var(--water); font-weight: 500; }
 .topbar h1 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1.1; }
-.topbar__eq { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--ink-2); }
-.topbar__eq .eq { font-size: 13px; }
 .topbar__nav { margin-left: auto; display: flex; gap: 14px; font: 12px var(--mono); }
 .topbar__nav a { color: var(--water); }
 
