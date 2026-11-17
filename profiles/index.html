@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Steady Moisture Profiles</title>
+  <meta name="description" content="Steady Brooks-Corey saturation profiles above a water table for percolation, hydrostatic, and capillary-rise fluxes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../swrc/styles.css" />
+  <link rel="stylesheet" href="../conductivity/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__title">
+      <span class="masthead__kicker">HW 4</span>
+      <h1>Steady moisture profiles above a water table</h1>
+    </div>
+    <nav class="topbar__nav"><a href="../">HW 1</a> <a href="../swrc/">HW 2</a> <a href="../conductivity/">HW 3</a> <a href="https://github.com/OwenDinsmore/hydrology">source</a></nav>
+  </header>
+
+  <main class="board board--p">
+    <!-- ───────── Results ───────── -->
+    <section class="panel panel--stats" aria-label="Results">
+      <dl class="readouts readouts--strip">
+        <div class="readout"><dt>c = 3 + 2/λ</dt><dd id="c-out">–</dd><small>K = K<sub>s</sub> Θ<sub>E</sub><sup>c</sup></small></div>
+        <div class="readout"><dt>λc</dt><dd id="eta-out">–</dd><small>K = K<sub>s</sub> (s/|h<sub>A</sub>|)<sup>−λc</sup></small></div>
+        <div class="readout"><dt>K(L) <em>cm/s</em></dt><dd id="qref-out">–</dd><small id="qref-note">hydrostatic K at the surface</small></div>
+        <div class="readout readout--key"><dt>q<sub>max</sub> <em>cm/s</em></dt><dd id="qmax-out">–</dd><small id="qmax-note"></small></div>
+        <div class="readout readout--key"><dt>Θ* for −½ K<sub>s</sub></dt><dd id="tstar-out">–</dd><small>(½)<sup>1/c</sup>, where K = |q|</small></div>
+        <div class="readout readout--key"><dt>Θ<sub>E</sub> at surface</dt><dd id="tsurf-out">–</dd><small id="tsurf-note"></small></div>
+      </dl>
+    </section>
+
+    <!-- ───────── Parameters ───────── -->
+    <section class="panel panel--params" aria-labelledby="params-title">
+      <h2 id="params-title" class="panel__title">Params</h2>
+
+      <form id="params" class="params" autocomplete="off">
+        <fieldset>
+          <legend>Soil</legend>
+          <label class="field field--select">
+            <span class="field__name">Preset</span>
+            <select name="preset" id="preset"></select>
+          </label>
+          <label class="field">
+            <span class="field__name">h<sub>A</sub> <em>cm</em></span>
+            <input type="range" name="hA" min="-100" max="-5" step="0.1" value="-30" />
+            <output name="hA_val">−30</output>
+          </label>
+          <label class="field">
+            <span class="field__name">λ</span>
+            <input type="range" name="lam" min="0.05" max="3" step="0.01" value="1.2" />
+            <output name="lam_val">1.20</output>
+          </label>
+          <label class="field field--num"><span class="field__name">K<sub>s</sub> <em>cm/s</em></span><input type="number" name="Ks" min="1e-8" max="1" step="any" value="3.4e-4" /></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Column</legend>
+          <label class="field">
+            <span class="field__name">Water table depth L <em>cm</em></span>
+            <input type="range" name="L" min="20" max="300" step="1" value="80" />
+            <output name="L_val">80</output>
+          </label>
+          <label class="field field--select">
+            <span class="field__name">Upward fluxes are fractions of</span>
+            <select name="ref">
+              <option value="KL" selected>K(L), hydrostatic (notes)</option>
+              <option value="qmax">q_max, largest steady rise</option>
+            </select>
+          </label>
+        </fieldset>
+      </form>
+      <div class="actions">
+        <button type="button" class="btn" id="reset">Reset to HW</button>
+        <button type="button" class="btn" id="csv">CSV ↓</button>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ───────── Main chart ───────── -->
+    <section class="panel panel--main" aria-labelledby="main-title">
+      <div class="panel__head">
+        <h2 id="main-title" class="panel__title">Θ<sub>E</sub> with height above the water table</h2>
+        <ul class="key" id="key"></ul>
+      </div>
+      <div class="chart">
+        <svg id="main-svg" role="img" aria-label="Effective saturation versus height above the water table for five steady fluxes"></svg>
+        <div class="tooltip" hidden></div>
+      </div>
+    </section>
+
+    <!-- ───────── Answers ───────── -->
+    <section class="panel panel--answer">
+      <div class="tabs" role="group" aria-label="Choose what to show">
+        <button type="button" class="tab" data-tab="tab-shapes" aria-pressed="true">Shapes</button>
+        <button type="button" class="tab" data-tab="tab-forces" aria-pressed="false">Forces</button>
+        <button type="button" class="tab" data-tab="tab-texture" aria-pressed="false">Texture</button>
+        <button type="button" class="tab" data-tab="tab-table" aria-pressed="false">Table</button>
+      </div>
+
+      <div class="tab-body" id="tab-shapes">
+        <p class="answer" id="shape-fringe"></p>
+        <p class="answer" id="shape-hydro"></p>
+        <p class="answer" id="shape-perc"></p>
+        <p class="answer" id="shape-evap"></p>
+        <p class="answer" id="shape-check"></p>
+      </div>
+
+      <div class="tab-body" id="tab-forces" hidden>
+        <p class="answer">
+          <strong>Darcy's law is a force balance.</strong> For steady flow, the forces on the water per unit weight are
+          gravity (1, down), the suction gradient ds/dz, which pulls water toward drier soil, and drag from the grains,
+          q/K, which always opposes the flow. They balance as
+        </p>
+        <p class="eq">ds/dz = 1 + q/K(s)</p>
+        <p class="answer">
+          <strong>At rest</strong> there is no drag, so suction alone holds the water up against gravity: ds/dz = 1, and
+          suction equals height.
+        </p>
+        <p class="answer" id="force-perc"></p>
+        <p class="answer" id="force-evap"></p>
+      </div>
+
+      <div class="tab-body" id="tab-texture" hidden>
+        <p class="answer" id="tex-intro"></p>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th scope="col" class="l">Soil</th><th scope="col">|h<sub>A</sub>| <em>cm</em></th><th scope="col">λ</th><th scope="col">c</th>
+              <th scope="col">Θ*<sub>−½</sub></th><th scope="col">Θ<sub>E</sub>(L), q = 0</th><th scope="col">q<sub>max</sub> <em>mm/d</em></th>
+            </tr>
+          </thead>
+          <tbody id="tex-rows"></tbody>
+        </table>
+        <p class="answer" id="tex-points"></p>
+        <p class="note">Classes from Clapp and Hornberger (1978), where b = 1/λ and c = 2b + 3. Click a row to load it.</p>
+      </div>
+
+      <div class="tab-body" id="tab-table" hidden>
+        <table class="tbl">
+          <thead id="prof-head"></thead>
+          <tbody id="prof-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────── Texture small multiples ───────── -->
+    <section class="panel panel--tex" aria-labelledby="tex-title">
+      <div class="panel__head">
+        <h2 id="tex-title" class="panel__title">Same fluxes, other textures</h2>
+      </div>
+      <div class="multiples" id="multiples"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

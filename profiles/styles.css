@@ -1,0 +1,105 @@
+/* HW 4 layer on top of ../swrc/styles.css and ../conductivity/styles.css */
+:root {
+  /* five fluxes, read as a diverging scale: blue = down, grey = rest, orange = up */
+  --perc-1: #1f5fa8;
+  --perc-2: #6b9fd8;
+  --hydro: #5c5f66;
+  --evap-1: #e08a4c;
+  --evap-2: #b23a12;
+}
+
+.board--p {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 236px minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas:
+    "stats  stats stats"
+    "params main  answer"
+    "params main  tex";
+}
+.panel--main { grid-area: main; }
+.panel--tex  { grid-area: tex; }
+.board--p .panel--answer { grid-area: answer; }
+
+@media (min-width: 1100px) and (min-height: 640px) {
+  .board--p { flex: 1; min-height: 0; }
+}
+
+.readout dt em { font-style: normal; color: var(--ink-3); font-size: 10px; }
+
+/* ───── Series ───── */
+.chart .s-perc-half    { stroke: var(--perc-1); }
+.chart .s-perc-quarter { stroke: var(--perc-2); }
+.chart .s-hydro        { stroke: var(--hydro); stroke-dasharray: 6 4; stroke-linecap: butt; }
+.chart .s-evap-half    { stroke: var(--evap-1); }
+.chart .s-evap-97      { stroke: var(--evap-2); }
+.ln.s-perc-half    { border-top-color: var(--perc-1); }
+.ln.s-perc-quarter { border-top-color: var(--perc-2); }
+.ln.s-hydro        { border-top: 2.5px dashed var(--hydro); }
+.ln.s-evap-half    { border-top-color: var(--evap-1); }
+.ln.s-evap-97      { border-top-color: var(--evap-2); }
+
+.chart .ref-line { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 4; }
+.chart .ref-label { font: 10.5px var(--mono); fill: var(--ink-3); }
+.chart .surface { stroke: var(--ink); stroke-width: 1.5; }
+.chart .end-label { font: 11px var(--mono); fill: var(--ink); }
+.chart .end-tick { stroke: var(--ink-3); stroke-width: 1; }
+.chart .end-dot { stroke: var(--panel); stroke-width: 2; }
+.chart .dot-perc-half    { fill: var(--perc-1); }
+.chart .dot-perc-quarter { fill: var(--perc-2); }
+.chart .dot-hydro        { fill: var(--hydro); }
+.chart .dot-evap-half    { fill: var(--evap-1); }
+.chart .dot-evap-97      { fill: var(--evap-2); }
+.chart .dry-band { fill: var(--paper-3); opacity: 0.5; }
+.chart .hover-row { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; pointer-events: none; }
+.chart .hover-pt { stroke: var(--panel); stroke-width: 2; pointer-events: none; }
+
+.tooltip table { border-collapse: collapse; font: 11px var(--mono); }
+.tooltip td { padding: 0 4px; text-align: right; }
+.tooltip td:first-child { text-align: left; }
+.tooltip i.sw { display: inline-block; width: 12px; margin-right: 4px; vertical-align: 3px; border-top: 2.5px solid; }
+
+/* ───── Small multiples ───── */
+.multiples {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.mini { display: flex; flex-direction: column; min-height: 0; }
+.mini__title { margin: 0; font: 600 13px var(--body); }
+.mini__title small { font: 10.5px var(--mono); color: var(--ink-3); font-weight: 400; }
+.mini .chart { flex: 1 1 0; min-height: 0; position: relative; }
+
+/* ───── Answers ───── */
+.eq { margin: 0; font: 13px var(--mono); text-align: center; color: var(--ink); }
+.tbl th.l, .tbl td.l { text-align: left; }
+#tex-rows tr { cursor: pointer; }
+#tex-rows tr:hover td { background: var(--paper-2); }
+
+@media (max-width: 1099px), (max-height: 639px) {
+  .multiples { flex: none; height: 240px; }
+}
+@media (max-width: 1099px) {
+  .board--p {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "stats stats" "main main" "answer tex" "params params";
+  }
+  .panel--main .chart { height: 420px; }
+}
+@media (max-width: 720px) {
+  .board--p { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stats" "main" "answer" "tex" "params"; }
+  .panel--main .chart { height: 380px; }
+  .multiples { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .mini .chart { flex: none; height: 220px; }
+}
+
+/* selects take the full width under their label */
+.board--p .field--select { grid-template-columns: 1fr; grid-template-areas: "name" "num"; gap: 2px; }
+.board--p .field--select select { width: 100%; }
+@media (max-width: 720px) {
+  .board--p .readouts--strip { grid-template-columns: repeat(2, 1fr); }
+}

@@ -1,12 +1,13 @@
 # Hydrology
 
-Three homework pieces, all published with GitHub Pages:
+Four homework pieces, all published with GitHub Pages:
 
 | | Page | Source |
 |---|---|---|
 | HW 1 · Darcy flux mass balance | https://owendinsmore.github.io/hydrology/ | `darcy_flux_mass_balance.ipynb` |
 | HW 2 · Pore-ensemble SWRC simulator | https://owendinsmore.github.io/hydrology/swrc/ | `swrc/` |
 | HW 3 · Brooks–Corey fit and Poiseuille conductivity | https://owendinsmore.github.io/hydrology/conductivity/ | `conductivity/` |
+| HW 4 · Steady moisture profiles above a water table | https://owendinsmore.github.io/hydrology/profiles/ | `profiles/` |
 
 ## HW 3 · Conductivity
 
