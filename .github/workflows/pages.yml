@@ -48,6 +48,11 @@ jobs:
           mkdir -p _site/profiles
           cp -r profiles/. _site/profiles/
 
+      - name: Add static network models app
+        run: |
+          mkdir -p _site/networks
+          cp -r networks/. _site/networks/
+
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: _site

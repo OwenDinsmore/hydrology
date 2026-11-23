@@ -1,0 +1,104 @@
+/* Layer on top of ../swrc/styles.css and ../conductivity/styles.css */
+
+.board--net {
+  gap: 10px;
+  grid-template-columns: 240px minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "stats  stats  stats"
+    "params net3d  curves";
+}
+.panel--net3d  { grid-area: net3d; }
+.panel--curves { grid-area: curves; gap: 4px; }
+.readouts--strip dd { font-size: 20px; }
+
+/* ───── Model picker ───── */
+.models { display: flex; flex-direction: column; gap: 3px; }
+.model-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: 13px var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+.model-btn i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.model-btn:hover { background: var(--paper-2); }
+.model-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.model-btn:focus-visible, .seg button:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+.params [hidden] { display: none; }
+
+/* ───── 3D panel ───── */
+.seg { display: flex; border: 1px solid var(--panel-edge); border-radius: 6px; overflow: hidden; }
+.seg button {
+  border: 0;
+  background: transparent;
+  padding: 3px 9px;
+  font: 12px var(--mono);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--panel-edge); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.viewport--net { flex: 1 1 0; min-height: 260px; aspect-ratio: auto; position: relative; }
+.viewport--net .legend { flex-wrap: wrap; }
+.sw--ramp { width: 26px; border-radius: 3px; background: linear-gradient(90deg, #cfe6ee, #2b9bbb, #0a2f5c); }
+.sw--still { background: #b4c3cb; }
+.sw--water { background: var(--water); }
+.busy {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 12px var(--mono);
+}
+.busy[hidden] { display: none; }
+
+.headctl--net { padding: 6px 10px; }
+.headctl--net .headctl__row { font-size: 12.5px; }
+.actions--net { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions--net .btn { flex: 1; }
+.model-note { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
+.model-note strong { color: var(--ink); }
+
+/* ───── Curves ───── */
+.chart-title { margin: 2px 0 0; font: 600 13px var(--body); color: var(--ink); }
+.chart--net { flex: 1 1 0; min-height: 150px; position: relative; }
+.chart--net svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chart .tick-label { font: 10.5px var(--mono); fill: var(--ink-2); }
+.chart .series--h { stroke: var(--fit); stroke-dasharray: 6 4; }
+.chart .series--fit { stroke: var(--ink-3); stroke-dasharray: 3 3; stroke-width: 1.4; }
+.ln--h { border-top: 2.5px dashed var(--fit); }
+.ln--fit { border-top: 2px dashed var(--ink-3); }
+.tab-body .btn--primary { align-self: flex-start; }
+#cmp-table td:first-child, #cmp-table th:first-child { text-align: left; }
+
+@media (min-width: 1100px) and (min-height: 640px) {
+  .board--net { flex: 1; min-height: 0; }
+  .panel--net3d, .panel--curves { min-height: 0; }
+}
+@media (max-width: 1099px), (max-height: 639px) {
+  .viewport--net { flex: none; height: 440px; }
+  .chart--net { flex: none; height: 220px; }
+}
+@media (max-width: 1099px) {
+  .board--net {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "stats" "net3d" "curves" "params";
+  }
+}
+@media (max-width: 720px) {
+  .viewport--net { height: 340px; }
+  .actions--net .btn { flex: 1 1 40%; }
+  .panel__head { flex-wrap: wrap; }
+}

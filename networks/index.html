@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Layered Pore Networks</title>
+  <meta name="description" content="Stacked plates, gapped plates and branching trees as pore networks: drain them, solve Kirchhoff's law for K(S) in two directions, and compare with Mualem and a pore-throat lattice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../swrc/styles.css" />
+  <link rel="stylesheet" href="../conductivity/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__title">
+      <span class="masthead__kicker">Research</span>
+      <h1>Layered and branching pore networks</h1>
+    </div>
+    <nav class="topbar__nav"><a href="../">HW 1</a> <a href="../swrc/">HW 2</a> <a href="../conductivity/">HW 3</a> <a href="https://github.com/OwenDinsmore/hydrology">source</a></nav>
+  </header>
+
+  <main class="board board--net">
+    <!-- ───────── Results ───────── -->
+    <section class="panel panel--stats" aria-label="Results">
+      <dl class="readouts readouts--strip">
+        <div class="readout"><dt>Porosity, total</dt><dd id="phi">–</dd><small id="size"></small></div>
+        <div class="readout"><dt>K<sub>sat</sub> vertical</dt><dd id="ksat">–</dd><small id="kc">m/s</small></div>
+        <div class="readout readout--key"><dt>K<sub>h</sub> / K<sub>v</sub></dt><dd id="aniso">–</dd><small id="ksath"></small></div>
+        <div class="readout readout--key"><dt>Mualem ℓ fitted</dt><dd id="lfit">–</dd><small id="muerr">Mualem assumes 0.5</small></div>
+        <div class="readout"><dt>Air entry h<sub>A</sub></dt><dd id="hae">–</dd><small>mm, first bond drains</small></div>
+        <div class="readout"><dt>Flow path lost at</dt><dd id="sc">–</dd><small id="sc-note">saturation where K<sub>v</sub> → 0</small></div>
+      </dl>
+    </section>
+
+    <!-- ───────── Parameters ───────── -->
+    <section class="panel panel--params" aria-labelledby="params-title">
+      <h2 id="params-title" class="panel__title">Model</h2>
+      <div class="models" role="radiogroup" aria-label="Network model" id="models"></div>
+
+      <form id="params" class="params" autocomplete="off">
+        <fieldset>
+          <legend>Soil</legend>
+          <label class="field field--num">
+            <span class="field__name">Texture</span>
+            <select name="preset">
+              <option value="coarse">Coarse sand</option>
+              <option value="fine" selected>Fine sand</option>
+              <option value="loamy">Loamy sand</option>
+              <option value="silt">Silt loam</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+          <label class="field field--num"><span class="field__name">d<sub>50</sub> <em>mm</em></span><input type="number" name="d50" min="0.005" max="5" step="any" /></label>
+          <label class="field field--num">
+            <span class="field__name">Pore sizes</span>
+            <select name="dist"><option value="exponential">Exponential</option><option value="lognormal">Log-normal</option></select>
+          </label>
+          <label class="field" data-only="lognormal"><span class="field__name">σ<sub>ln</sub></span><input type="range" name="sigln" min="0.1" max="1.5" step="0.05" /><output></output></label>
+          <label class="field"><span class="field__name">r̄ / d<sub>50</sub></span><input type="range" name="rRatio" min="0.05" max="0.4" step="0.01" /><output></output></label>
+          <label class="field"><span class="field__name">r<sub>max</sub> / r̄</span><input type="range" name="rmaxRatio" min="1.5" max="6" step="0.1" /><output></output></label>
+          <label class="field"><span class="field__name">Capillary porosity φ</span><input type="range" name="phi" min="0.08" max="0.5" step="0.01" /><output></output></label>
+          <label class="field field--check"><input type="checkbox" name="voidScale" /><span class="field__name">Pore size grows with void ratio</span></label>
+          <label class="field"><span class="field__name">Film water θ<sub>nc</sub> (clay, silt)</span><input type="range" name="film" min="0" max="0.5" step="0.005" /><output></output></label>
+          <label class="field field--num"><span class="field__name">Corner flow κ <em>0 = round</em></span><input type="number" name="corner" min="0" max="0.2" step="any" /></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Sample</legend>
+          <label class="field"><span class="field__name">Pores per layer</span><input type="range" name="N" min="40" max="400" step="10" /><output></output></label>
+          <label class="field"><span class="field__name">Layers</span><input type="range" name="layers" min="4" max="24" step="1" /><output></output></label>
+          <label class="field"><span class="field__name">Layer thickness / d<sub>50</sub></span><input type="range" name="tRatio" min="0.5" max="3" step="0.1" /><output></output></label>
+          <label class="field field--check"><input type="checkbox" name="access" /><span class="field__name">Air must reach a pore to drain it</span></label>
+          <label class="field field--num"><span class="field__name">Seed</span><input type="number" name="seed" min="0" max="99999" step="1" /></label>
+        </fieldset>
+
+        <fieldset data-models="plates gap">
+          <legend>Plates</legend>
+          <label class="field" data-models="gap"><span class="field__name">Gap b / d<sub>50</sub></span><input type="range" name="bRatio" min="0.01" max="0.5" step="0.005" /><output></output></label>
+          <label class="field" data-models="gap"><span class="field__name">Gap roughness σ</span><input type="range" name="bSigma" min="0" max="1.2" step="0.05" /><output></output></label>
+          <label class="field"><span class="field__name">Drilled side holes / pore</span><input type="range" name="lateral" min="0" max="3" step="0.1" /><output></output></label>
+        </fieldset>
+
+        <fieldset data-models="tree">
+          <legend>Tree</legend>
+          <label class="field"><span class="field__name">Trunk radius × r̄</span><input type="range" name="trunkFactor" min="1" max="3" step="0.1" /><output></output></label>
+          <label class="field"><span class="field__name">Branch chance per segment</span><input type="range" name="pBranch" min="0" max="1" step="0.05" /><output></output></label>
+          <label class="field"><span class="field__name">Generations</span><input type="range" name="generations" min="0" max="5" step="1" /><output></output></label>
+          <label class="field"><span class="field__name">Segments per generation</span><input type="range" name="segsPerGen" min="1" max="4" step="1" /><output></output></label>
+          <label class="field"><span class="field__name">Branch angle °</span><input type="range" name="branchAngle" min="10" max="80" step="1" /><output></output></label>
+          <label class="field"><span class="field__name">Side branch / trunk</span><input type="range" name="sideRatio" min="0.2" max="1" step="0.05" /><output></output></label>
+          <label class="field"><span class="field__name">Tip fusion (loops)</span><input type="range" name="anastomosis" min="0" max="1" step="0.05" /><output></output></label>
+        </fieldset>
+
+        <fieldset data-models="lattice">
+          <legend>Lattice</legend>
+          <label class="field"><span class="field__name">Coordination z</span><input type="range" name="coord" min="2.5" max="6" step="0.1" /><output></output></label>
+        </fieldset>
+        <button type="button" class="btn" id="reset">Reset defaults</button>
+      </form>
+    </section>
+
+    <!-- ───────── 3D network ───────── -->
+    <section class="panel panel--net3d" aria-labelledby="net-title">
+      <div class="panel__head">
+        <h2 id="net-title" class="panel__title" aria-live="polite">Network</h2>
+        <div class="seg" role="radiogroup" aria-label="Colour bonds by" id="colour">
+          <button type="button" data-mode="water" aria-pressed="true">Water</button>
+          <button type="button" data-mode="v" aria-pressed="false">Vertical flow</button>
+          <button type="button" data-mode="h" aria-pressed="false">Horizontal flow</button>
+        </div>
+      </div>
+      <div class="viewport viewport--net" id="viewport">
+        <canvas id="gl"></canvas>
+        <div class="legend" id="legend"></div>
+        <div class="busy" id="busy" hidden>Solving…</div>
+      </div>
+      <div class="headctl headctl--net">
+        <div class="headctl__row">
+          <label for="step">Suction |h|</label>
+          <span class="headctl__value"><span id="h-val">0</span> mm · S = <span id="s-val">1</span> · K<sub>r</sub> = <span id="kr-val">1</span></span>
+        </div>
+        <input id="step" type="range" min="0" max="34" step="1" value="0" aria-label="Drainage step" />
+      </div>
+      <div class="actions actions--net">
+        <button type="button" class="btn" id="sweep">Drain sweep</button>
+        <button type="button" class="btn" id="cut" aria-pressed="true">Cutaway</button>
+        <button type="button" class="btn" id="reseed">New seed</button>
+        <button type="button" class="btn" id="csv">Export CSV</button>
+      </div>
+      <p class="model-note" id="note"></p>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ───────── Curves ───────── -->
+    <section class="panel panel--curves" aria-label="Curves">
+      <div class="tabs">
+        <button type="button" class="tab" data-tab="model" aria-pressed="true">This model</button>
+        <button type="button" class="tab" data-tab="compare" aria-pressed="false">Compare all five</button>
+      </div>
+      <div class="tab-body" data-body="model">
+        <h3 class="chart-title">Retention θ(h)</h3>
+        <div class="chart chart--net"><svg id="ret-svg" role="img" aria-label="Water content against suction"></svg></div>
+        <h3 class="chart-title">Relative conductivity K<sub>r</sub>(S)</h3>
+        <ul class="key">
+          <li><i class="ln"></i>network, vertical</li>
+          <li><i class="ln ln--h"></i>network, horizontal</li>
+          <li><i class="ln ln--pred"></i>Mualem ℓ = 0.5 from this θ(h)</li>
+          <li><i class="ln ln--fit"></i>Mualem, fitted ℓ</li>
+        </ul>
+        <div class="chart chart--net"><svg id="k-svg" role="img" aria-label="Relative conductivity against saturation"></svg></div>
+      </div>
+      <div class="tab-body" data-body="compare" hidden>
+        <p class="note" id="cmp-status">Runs every model on the same soil and cylinder.</p>
+        <button type="button" class="btn btn--primary" id="compare">Run all five</button>
+        <ul class="key" id="cmp-key"></ul>
+        <div class="chart chart--net"><svg id="cmp-svg" role="img" aria-label="Relative vertical conductivity against saturation for every model"></svg></div>
+        <table class="tbl" id="cmp-table">
+          <thead><tr><th>Model</th><th>φ</th><th>K<sub>sat</sub> <em>m/s</em></th><th>K<sub>h</sub>/K<sub>v</sub></th><th>ℓ</th><th>S<sub>lost</sub></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
