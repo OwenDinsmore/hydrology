@@ -9,7 +9,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 16px/1.55 Georgia, "Times New Roman", serif;
+  font: 16px/1.5 "Times New Roman", Times, serif;
 }
 
 main {
@@ -28,8 +28,8 @@ figure { margin: 12px 0; }
 svg { width: 100%; height: auto; display: block; }
 svg .grid { stroke: var(--rule); stroke-width: 1; }
 svg .axis { stroke: var(--ink); stroke-width: 1.2; fill: none; }
-svg .tick { font: 12px Georgia, serif; fill: var(--muted); }
-svg .label { font: 13px Georgia, serif; fill: var(--ink); }
+svg .tick { font: 12px "Times New Roman", Times, serif; fill: var(--muted); }
+svg .label { font: 13px "Times New Roman", Times, serif; fill: var(--ink); }
 
 figcaption { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
 figcaption i { display: inline-block; width: 20px; margin-right: 6px; vertical-align: 4px; border-top: 2.5px solid; }
@@ -38,3 +38,19 @@ table { border-collapse: collapse; font-size: 15px; margin: 8px 0; }
 th, td { padding: 3px 12px; text-align: right; border-bottom: 1px solid var(--rule); }
 th:first-child, td:first-child { text-align: left; padding-left: 0; }
 th { border-bottom: 1.5px solid var(--ink); font-weight: 600; }
+
+@media print {
+  @page { size: letter; margin: 0.7in; }
+  body { font-size: 11pt; line-height: 1.38; }
+  main { max-width: none; padding: 0; }
+  h1 { font-size: 17pt; }
+  h2 { font-size: 13pt; margin: 12pt 0 3pt; break-after: avoid; }
+  p, ul { margin: 5pt 0; }
+  li { margin: 2pt 0; }
+  figure { margin: 6pt 0; }
+  svg { max-height: 3.7in; width: auto; margin: 0 auto; }
+  figcaption { justify-content: center; font-size: 10.5pt; }
+  table { font-size: 10.5pt; }
+  th, td { padding: 1pt 10pt; }
+  figure, table, li { break-inside: avoid; }
+}

@@ -42,7 +42,8 @@ for (let z = 0; z <= L; z += 10) {
   add("text", { x: x(0) - 8, y: y(z) + 4, "text-anchor": "end", class: "tick" }, z);
 }
 add("path", { d: `M${x(0)} ${y(L)} V${y(0)} H${x(1)}`, class: "axis" });
-add("text", { x: (x(0) + x(1)) / 2, y: H - 8, "text-anchor": "middle", class: "label" }, "effective saturation ΘE");
+add("text", { x: (x(0) + x(1)) / 2, y: H - 8, "text-anchor": "middle", class: "label" }).innerHTML =
+  `effective saturation Θ<tspan dy="3" font-size="10">E</tspan>`;
 add("text", { transform: `translate(16 ${(y(0) + y(L)) / 2}) rotate(-90)`, "text-anchor": "middle", class: "label" }, "height above water table (cm)");
 add("text", { x: x(0) + 6, y: y(L) + 14, class: "tick" }, "surface");
 
